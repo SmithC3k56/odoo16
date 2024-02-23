@@ -1,4 +1,6 @@
-from odoo import api, fields, models
+from unidecode import unidecode
+
+from odoo import api, fields, models, tools
 from odoo.exceptions import ValidationError
 class HospitalPatient(models.Model):
     _name = 'hospital.patient'
@@ -6,7 +8,6 @@ class HospitalPatient(models.Model):
     _description = 'Patient Records'
 
 
-    name = fields.Char(string='Name', required=True, tracking=True)
     age = fields.Integer(string='Age')
     is_child = fields.Boolean(string='Is Child ?', tracking=True)
     notes = fields.Text(string='Notes')
@@ -16,6 +17,14 @@ class HospitalPatient(models.Model):
     ref = fields.Char(string='Reference', default=lambda self: ("New"))
     doctor_id = fields.Many2one('hospital.doctor', string='Doctor')
     tag_ids = fields.Many2many('res.partner.category','hospital_patient_tag_rel','patient_id','tag_id', string='Tags')
+
+    name = fields.Char(string='Name', required=True, tracking=True, help='This is the name of the patient')
+    name_unaccent = fields.Char(string='Name Unaccent', compute='_compute_name_unaccent', store=True)
+
+    @api.depends('name')
+    def _compute_name_unaccent(self):
+        for record in self:
+            record.name_unaccent = unidecode(record.name).lower() if record.name else ''
 
     @api.model_create_multi
     def create(self, vals_list):

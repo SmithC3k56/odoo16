@@ -49,7 +49,11 @@
         <field name="model">hospital.patient</field>
         <field name="arch" type="xml">
             <search>
-                <field name="name" filter_domain="['|',('name','ilike',self),('ref','ilike',self)]"/>
+
+
+<field name="name" filter_domain="['|', ('name_unaccent', 'ilike', '%'+self+'%'), ('ref', 'ilike', self)]"/>
+
+
                 <field name="age"/>
                 <field name="gender"/>
                 <filter name="filter_male" string="Male" domain="[('gender','=','male')]"/>

@@ -30,3 +30,32 @@ For a standard installation please follow the <a href="https://www.odoo.com/docu
 from the documentation.
 
 To learn the software, we recommend the <a href="https://www.odoo.com/slides">Odoo eLearning</a>, or <a href="https://www.odoo.com/page/scale-up-business-game">Scale-up</a>, the <a href="https://www.odoo.com/page/scale-up-business-game">business game</a>. Developers can start with <a href="https://www.odoo.com/documentation/16.0/developer/howtos.html">the developer tutorials</a>
+
+
+Guide for custom searching
+
+- Step 1:
+  - Open query console on postgresql
+  - Run query 'CREATE EXTENSION unaccent;
+             SELECT unaccent('Hôtel');'
+- Step 2:
+  - Run pip install cmd:'pip install unidecode'
+- Step 3:
+  - add to patient.py model '
+    name = fields.Char(string='Name', required=True, tracking=True, help='This is the name of the patient') # đây là trường show ra
+    name_unaccent = fields.Char(string='Name Unaccent', compute='_compute_name_unaccent', store=True) # đây là trường dùng cho tìm kiếm không dấu
+
+    @api.depends('name')
+    def _compute_name_unaccent(self): # đây là function cho việc thực hiện query tìm kiếm
+        for record in self:
+            record.name_unaccent = unidecode(record.name).lower() if record.name else ''
+
+'
+
+- Step 4: add to patient.xml:
+  "
+<search>
+	<field name="name" filter_domain="['|', ('name_unaccent', 'ilike', '%'+self+'%'), ('ref', 'ilike', self)]"/>
+</search>
+  "
+
